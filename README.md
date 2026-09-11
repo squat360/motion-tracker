@@ -2,9 +2,13 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-macOS%20M4-orange.svg)](https://www.apple.com/mac/)
+[![Platform](https://img.shields.io/badge/Platform-Android%20%2F%20Samsung-green.svg)](docs/samsung-android.md)
+[![Pose](https://img.shields.io/badge/Pose-MediaPipe%20default-blue.svg)](src/backends/)
+[![Apple Vision](https://img.shields.io/badge/Apple%20Vision-macOS%20optional-lightgrey.svg)](src/backends/README.md)
 
-A real-time human motion tracking and analysis system optimized for Apple Silicon (M4), designed for precise posture correction, fitness training, dance coaching, and interactive body-based applications.
+**Squat 360 fork** of motion-tracker: Samsung / Android–viable squat coaching tooling that **augments coaches** (does not replace trainers). Primary on-device path is **MediaPipe Pose** on Galaxy devices (incl. Fold7). See [Samsung / Android guide](docs/samsung-android.md).
+
+A real-time human motion tracking and analysis system for posture correction, fitness training, dance coaching, and gym-floor coaching apps—with Android / Samsung as the primary mobile target and Apple Vision marked **macOS-optional** (not the default path).
 
 ## Preview
 
@@ -19,12 +23,12 @@ A real-time human motion tracking and analysis system optimized for Apple Silico
 ### 🎯 Key Advantages
 
 - **Production-Ready Accuracy**: 3-5° joint angle precision with 3D world coordinates, meeting professional athletic analysis standards
-- **Apple Silicon Optimized**: Native ARM64 support achieving 35+ FPS on M4 chips, outperforming x86 emulation
+- **Android / Samsung First**: Mobile scaffold targets Galaxy (Fold7 checklist); MediaPipe Pose is the default backend
 - **Complete Skeleton Tracking**: 33 keypoints including face, hands, and feet - far more comprehensive than typical 17-point systems
 - **Rich Posture Metrics**: Beyond joint angles - tracks head tilt, neck posture, body lean, shoulder/hip alignment, and spine curvature
 - **Intelligent Movement Comparison**: DTW (Dynamic Time Warping) algorithm handles different speeds and timing variations in dance coaching
 - **Zero Cloud Dependencies**: 100% on-device processing - no API costs, no privacy concerns, no internet required
-- **Flexible Architecture**: Plugin-based backend system supports MediaPipe, Apple Vision, and YOLO11 - swap implementations without code changes
+- **Flexible Architecture**: Plugin-based backends — **MediaPipe (default)**, optional Apple Vision (macOS), YOLO11 — swap without rewriting app code
 - **Battle-Tested Code**: Comprehensive test coverage, extensive error handling, and real-world validation across multiple demos
 
 ### 🚀 Technical Highlights
@@ -47,8 +51,8 @@ A real-time human motion tracking and analysis system optimized for Apple Silico
 - **Precise Angle Calculation**: Measure joint angles with <5° accuracy for athletic analysis
 - **Comprehensive Posture Metrics**: Head tilt, neck angle, body lean, shoulder/hip tilt, spine curvature
 - **Multiple Backends**:
-  - MediaPipe (recommended for quick start, 33 keypoints)
-  - Apple Vision Framework (native optimization, 19 keypoints)
+  - **MediaPipe (default)** — Android / Samsung / cross-platform, 33 keypoints
+  - Apple Vision Framework — **macOS optional only**, not required for Squat 360
   - YOLO11 (multi-person scenarios, 17 keypoints)
 - **Smart Movement Comparison**: DTW algorithm for dance coaching - works regardless of speed differences
 - **Professional Visualization**:
@@ -60,7 +64,7 @@ A real-time human motion tracking and analysis system optimized for Apple Silico
   - Fitness form analysis with angle thresholds
   - Dance movement coaching with 0-100 scoring
   - Interactive body games and AR experiences
-- **AR/VR Ready**: Designed for integration with ARKit and RealityKit
+- **Mobile scaffold**: Expo app under `apps/squat360-mobile/` (Record / Review / Plans / Clients)
 
 ## Quick Start
 
@@ -68,7 +72,7 @@ A real-time human motion tracking and analysis system optimized for Apple Silico
 
 ```bash
 # Clone the repository
-git clone https://github.com/MindDock/motion-tracker.git
+git clone https://github.com/squat360/motion-tracker.git
 cd motion-tracker
 
 # Create virtual environment
@@ -111,22 +115,24 @@ print(f"Left elbow angle: {elbow_angle:.1f}°")
 
 ```
 motion-tracker/
+├── apps/
+│   └── squat360-mobile/   # Expo + TypeScript (Samsung / Android)
 ├── src/
 │   ├── core/              # Core interfaces and utilities
-│   ├── backends/          # Pose estimation implementations
+│   ├── backends/          # Pose backends (MediaPipe default)
 │   ├── applications/      # Ready-to-use applications
-│   └── visualization/     # Rendering and AR overlays
+│   └── visualization/     # Rendering overlays
 ├── demos/                 # Example demonstrations
 ├── tests/                 # Unit tests
-└── docs/                  # Documentation
+└── docs/                  # Incl. samsung-android.md
 ```
 
 ## Supported Backends
 
 | Backend | Keypoints | 3D Support | FPS | Best For |
 |---------|-----------|------------|-----|----------|
-| MediaPipe | 33 | ✓ | 30+ | Quick start, full body |
-| Apple Vision | 19 | ✓ | 60+ | Native apps, AR integration |
+| **MediaPipe (default)** | 33 | ✓ | 30+ | Android / Samsung, full body |
+| Apple Vision (optional) | 19 | ✓ | 60+ | macOS only — not default path |
 | YOLO11 | 17 | ✗ | 100+ | Multi-person detection |
 
 ## Applications
@@ -170,16 +176,19 @@ python demos/dance_coach_demo.py
 
 ## Performance
 
-Tested on MacBook Pro M4:
-- MediaPipe: 35-40 FPS @ 720p
-- Apple Vision: 60 FPS @ 1080p
-- YOLO11: 120+ FPS @ 720p
+Reference (desktop / laptop; mobile TBD per device):
+- MediaPipe: typically 30+ FPS @ 720p on modern hardware
+- Apple Vision (optional macOS): higher FPS on Apple Silicon when implemented
+- YOLO11: multi-person / throughput-oriented
+
+Samsung Galaxy validation checklist (Fold7, gym lighting): [docs/samsung-android.md](docs/samsung-android.md)
 
 ## Requirements
 
-- macOS 12.0+ (Apple Silicon recommended)
-- Python 3.10+
-- Webcam or video input device
+- **Primary:** Android device (Samsung Galaxy recommended) for the Expo app; Python 3.10+ for demos/backends
+- Linux / macOS / Windows OK for MediaPipe Python path
+- Apple Vision / CoreML / ARKit: **not required** (macOS-optional only)
+- Webcam or device camera
 
 ## Technical Details
 
@@ -190,11 +199,21 @@ Tested on MacBook Pro M4:
 
 ## Roadmap
 
-- [ ] CoreML model export for ultra-low latency
+- [x] Samsung / Android docs + Expo mobile scaffold (`apps/squat360-mobile/`)
+- [ ] MediaPipe / TFLite on-device binding in the Expo app
+- [ ] Fold7 pilot hardening (camera presets, overlay, sqlite sync)
 - [ ] Multi-camera calibration for enhanced 3D accuracy
-- [ ] Integration with VR headsets (Vision Pro support)
-- [ ] Cloud-based pose comparison and analytics
-- [ ] Mobile app (iOS/iPadOS)
+- [ ] Optional cloud analytics (Firebase stubs in place)
+- [ ] Apple Vision backend remains macOS-optional only
+
+## Squat 360
+
+This repository is maintained as the **Squat 360** motion-tracker fork for gym coaching workflows:
+
+- Primary platform: **Android / Samsung** ([validation checklist](docs/samsung-android.md))
+- Default pose: **MediaPipe** ([backends README](src/backends/README.md))
+- Mobile UI: `apps/squat360-mobile/` — Home, Record, Review, Plans, Clients, Settings
+- Goal: help coaches review form and plan training — **augment coaches, not replace trainers**
 
 ## Contributing
 
@@ -226,6 +245,6 @@ If you use this project in your research, please cite:
   title = {Motion Tracker: Real-time Human Motion Analysis System},
   author = {Your Name},
   year = {2026},
-  url = {https://github.com/MindDock/motion-tracker}
+  url = {https://github.com/squat360/motion-tracker}
 }
 ```
