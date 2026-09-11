@@ -38,6 +38,14 @@ export function buildRuleBasedPlan(findings: TechniqueFinding[]): PlanItem[] {
         focus: 'technique',
       });
     }
+    if (f.code === 'TORSO_LEAN') {
+      items.push({
+        id: 'brace-pause',
+        title: 'Brace + pause squat',
+        detail: 'Coach-led pauses to talk through torso position — not an automatic programming change.',
+        focus: 'technique',
+      });
+    }
   }
 
   items.push({

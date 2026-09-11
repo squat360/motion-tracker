@@ -64,7 +64,7 @@ A real-time human motion tracking and analysis system for posture correction, fi
   - Fitness form analysis with angle thresholds
   - Dance movement coaching with 0-100 scoring
   - Interactive body games and AR experiences
-- **Mobile scaffold**: Expo app under `apps/squat360-mobile/` (Record / Review / Plans / Clients)
+- **Mobile scaffold**: Expo app under `apps/squat360-mobile/` — MediaPipe Pose on Fold7 via `npx expo run:android` (Record / Review overlay / Plans / Clients)
 
 ## Quick Start
 
@@ -200,7 +200,7 @@ Samsung Galaxy validation checklist (Fold7, gym lighting): [docs/samsung-android
 ## Roadmap
 
 - [x] Samsung / Android docs + Expo mobile scaffold (`apps/squat360-mobile/`)
-- [ ] MediaPipe / TFLite on-device binding in the Expo app
+- [x] MediaPipe on-device adapter in the Expo app (`@thinksys/react-native-mediapipe` + landmark pipeline)
 - [ ] Fold7 pilot hardening (camera presets, overlay, sqlite sync)
 - [ ] Multi-camera calibration for enhanced 3D accuracy
 - [ ] Optional cloud analytics (Firebase stubs in place)

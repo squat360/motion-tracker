@@ -1,19 +1,23 @@
 import { StyleSheet, Text, View, FlatList } from 'react-native';
 import { gym } from '@/src/theme/gym';
-import { MockTechniqueAnalyzer } from '@/src/ai';
+import { LandmarkTechniqueAnalyzer } from '@/src/ai/LandmarkTechniqueAnalyzer';
+import { SAMPLE_SQUAT_FRAMES } from '@/src/ai/fixtures/squatSequence';
+import { getLastPoseSession } from '@/src/ai/poseSession';
 import { buildRuleBasedPlan } from '@/src/plans/ruleBasedPlan';
 
 export default function PlansScreen() {
-  const analysis = new MockTechniqueAnalyzer().analyze([
-    { timestampMs: 0, landmarks: [] },
-  ]);
+  const captured = getLastPoseSession();
+  const frames = captured?.frames?.length ? captured.frames : SAMPLE_SQUAT_FRAMES;
+  const analysis = captured?.analysis ?? new LandmarkTechniqueAnalyzer().analyze(frames);
   const plan = buildRuleBasedPlan(analysis.findings);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Plans</Text>
       <Text style={styles.muted}>
-        Rule-based stub from technique cues. Coaches approve or edit before athletes follow anything.
+        Rule-based stub from landmark technique cues
+        {captured?.frames?.length ? ' (last captured set)' : ' (fixture until you capture a set)'}.
+        Coaches approve or edit before athletes follow anything.
       </Text>
       <FlatList
         data={plan}

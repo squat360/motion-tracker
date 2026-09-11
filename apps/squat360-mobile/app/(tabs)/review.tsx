@@ -1,61 +1,90 @@
-import { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, View, Dimensions } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { PoseOverlay } from '@/components/PoseOverlay';
+import { LandmarkTechniqueAnalyzer } from '@/src/ai/LandmarkTechniqueAnalyzer';
+import { SAMPLE_SQUAT_FRAMES } from '@/src/ai/fixtures/squatSequence';
+import { LandmarkSetCounter } from '@/src/ai/LandmarkSetCounter';
+import { getLastPoseSession } from '@/src/ai/poseSession';
+import type { PoseFrame } from '@/src/ai/types';
 import { gym } from '@/src/theme/gym';
 import { listSessions, type SessionRow } from '@/src/db/database';
-import { MockSetCounter, MockTechniqueAnalyzer, type PoseFrame } from '@/src/ai';
 
 export default function ReviewScreen() {
+  const { width } = useWindowDimensions();
   const [sessions, setSessions] = useState<SessionRow[]>([]);
+  const [tick, setTick] = useState(0);
   const uri = sessions.find((s) => s.video_uri)?.video_uri ?? null;
+  const captured = getLastPoseSession();
+
+  useFocusEffect(
+    useCallback(() => {
+      listSessions().then(setSessions).catch(() => setSessions([]));
+    }, [])
+  );
+
+  const frames: PoseFrame[] = captured?.frames?.length ? captured.frames : SAMPLE_SQUAT_FRAMES;
+  const usingFixture = !captured?.frames?.length;
 
   useEffect(() => {
-    listSessions().then(setSessions).catch(() => setSessions([]));
-  }, []);
+    if (frames.length === 0) return;
+    const id = setInterval(() => setTick((n) => n + 1), 70);
+    return () => clearInterval(id);
+  }, [frames.length]);
+
+  const frame = frames.length ? frames[tick % frames.length] : null;
 
   const player = useVideoPlayer(uri, (p) => {
     p.loop = true;
   });
 
-  const mock = useMemo(() => {
-    const frames: PoseFrame[] = Array.from({ length: 8 }, (_, i) => ({
-      timestampMs: i * 33,
-      landmarks: [],
-    }));
-    const counter = new MockSetCounter();
+  const derived = useMemo(() => {
+    if (captured?.analysis && captured.count) {
+      return { count: captured.count, analysis: captured.analysis, source: captured.source };
+    }
+    const counter = new LandmarkSetCounter();
     frames.forEach((f) => counter.update(f));
-    const analysis = new MockTechniqueAnalyzer().analyze(frames);
-    return { counter: counter.getResult(), analysis };
-  }, []);
+    return {
+      count: counter.getResult(),
+      analysis: new LandmarkTechniqueAnalyzer().analyze(frames),
+      source: usingFixture ? 'fixture' : 'native-mediapipe',
+    };
+  }, [captured, frames, usingFixture]);
+
+  const previewH = Math.min(width * 0.72, 340);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Review</Text>
-      <Text style={styles.muted}>Player + pose overlay placeholder (MediaPipe later).</Text>
+      <Text style={styles.muted}>
+        {usingFixture
+          ? 'Showing fixture skeleton until a captured pose session exists. Live MediaPipe needs a Fold7 dev build.'
+          : `Overlay from ${derived.source} (${frames.length} frames). Heuristics only.`}
+      </Text>
 
-      <View style={styles.playerWrap}>
+      <View style={[styles.playerWrap, { height: previewH }]}>
         {uri ? (
           <VideoView style={styles.video} player={player} nativeControls contentFit="contain" />
         ) : (
           <View style={styles.placeholder}>
-            <Text style={styles.muted}>No video yet — record a set first.</Text>
-            <Text style={styles.muted}>Seed sessions still show AI mock output below.</Text>
+            <Text style={styles.muted}>No video file — pose frames still overlay below.</Text>
           </View>
         )}
-        {/* Overlay placeholder skeleton */}
-        <View pointerEvents="none" style={styles.overlay}>
-          <View style={styles.joint} />
-          <View style={[styles.joint, { top: '35%', left: '42%' }]} />
-          <View style={[styles.joint, { top: '55%', left: '40%' }]} />
-          <View style={[styles.bone, { top: '28%', left: '48%' }]} />
-          <Text style={styles.overlayLabel}>Pose overlay placeholder</Text>
-        </View>
+        <PoseOverlay
+          frame={frame}
+          width={width - 32}
+          height={previewH}
+          label={usingFixture ? 'Fixture keypoints' : 'Captured keypoints'}
+        />
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Mock set count: {mock.counter.reps} reps</Text>
-        <Text style={styles.muted}>{mock.analysis.summary}</Text>
-        {mock.analysis.findings.map((f) => (
+        <Text style={styles.cardTitle}>
+          Set count: {derived.count.reps} reps · {derived.count.phase}
+        </Text>
+        <Text style={styles.muted}>{derived.analysis.summary}</Text>
+        {derived.analysis.findings.map((f) => (
           <Text key={f.code} style={styles.find}>
             • {f.message}
           </Text>
@@ -65,14 +94,11 @@ export default function ReviewScreen() {
   );
 }
 
-const H = Math.min(Dimensions.get('window').width * 0.7, 320);
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: gym.bg, padding: 16, gap: 10 },
   title: { color: gym.text, fontSize: 24, fontWeight: '700' },
   muted: { color: gym.muted, fontSize: 13, lineHeight: 18 },
   playerWrap: {
-    height: H,
     borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#000',
@@ -81,33 +107,6 @@ const styles = StyleSheet.create({
   },
   video: { width: '100%', height: '100%' },
   placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6, padding: 16 },
-  overlay: { ...StyleSheet.absoluteFill },
-  joint: {
-    position: 'absolute',
-    top: '22%',
-    left: '48%',
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: gym.accent,
-    opacity: 0.85,
-  },
-  bone: {
-    position: 'absolute',
-    width: 3,
-    height: '30%',
-    backgroundColor: gym.accent,
-    opacity: 0.5,
-  },
-  overlayLabel: {
-    position: 'absolute',
-    bottom: 8,
-    alignSelf: 'center',
-    left: 12,
-    color: gym.accent,
-    fontSize: 11,
-    fontWeight: '600',
-  },
   card: {
     backgroundColor: gym.card,
     borderRadius: 12,

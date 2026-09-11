@@ -12,7 +12,8 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Record squat sets for coach review.",
         "NSMicrophoneUsageDescription": "Optional audio with recorded sets."
-      }
+      },
+      "bundleIdentifier": "com.squat360.mobile"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +26,8 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
-      ]
+      ],
+      "package": "com.squat360.mobile"
     },
     "web": {
       "bundler": "metro",
@@ -34,6 +36,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-dev-client",
       "expo-sqlite",
       "expo-video",
       [
@@ -50,6 +53,17 @@
           "cameraPermission": "Allow Squat 360 to record squat sessions for coach review.",
           "microphonePermission": "Allow Squat 360 to include audio with recordings.",
           "recordAudioAndroid": true
+        }
+      ],
+      "./plugins/withMediapipeAndroid",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26,
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35
+          }
         }
       ]
     ],

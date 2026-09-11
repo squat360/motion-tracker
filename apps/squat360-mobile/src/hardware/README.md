@@ -7,3 +7,5 @@ Future optional capture path: **Sony IMX500** (or similar) intelligent vision se
 - When integrating: document cabling, power, and sync with `sessions` rows in sqlite.
 
 Placeholder modules can live here (`imx500Client.ts`, etc.) without blocking Expo Go demos.
+
+On-device pose on Galaxy uses MediaPipe in the Expo **dev client** (`npx expo run:android`), not this hardware path.

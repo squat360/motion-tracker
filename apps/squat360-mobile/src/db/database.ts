@@ -111,3 +111,23 @@ export async function insertSession(params: {
   );
   return result.lastInsertRowId;
 }
+
+
+export async function insertSet(params: {
+  sessionId: number;
+  exercise?: string;
+  reps: number;
+  loadKg?: number | null;
+  notes?: string;
+}): Promise<number> {
+  const db = await getDb();
+  const result = await db.runAsync(
+    'INSERT INTO sets (session_id, exercise, reps, load_kg, notes) VALUES (?, ?, ?, ?, ?)',
+    params.sessionId,
+    params.exercise ?? 'squat',
+    params.reps,
+    params.loadKg ?? null,
+    params.notes ?? ''
+  );
+  return result.lastInsertRowId;
+}

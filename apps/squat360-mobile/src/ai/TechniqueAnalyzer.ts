@@ -5,9 +5,8 @@ export interface TechniqueAnalyzer {
 }
 
 /**
- * Mock technique analyzer for scaffold / gym walkthroughs.
- * TODO(Android): MediaPipe Pose + rule heuristics (depth, knee tracking, torso lean);
- * optional TFLite classifier later. Keep messaging coach-assistive.
+ * Mock technique analyzer when no landmarks are available.
+ * Prefer LandmarkTechniqueAnalyzer once MediaPipe frames (or fixtures) exist.
  */
 export class MockTechniqueAnalyzer implements TechniqueAnalyzer {
   analyze(frames: PoseFrame[]): TechniqueAnalysis {
@@ -21,7 +20,7 @@ export class MockTechniqueAnalyzer implements TechniqueAnalyzer {
         {
           code: 'DEPTH_CHECK',
           severity: 'cue',
-          message: 'Check squat depth consistency across reps (mock).',
+          message: 'Check squat depth consistency across reps (mock — no landmarks).',
           coachHint: 'Ask the athlete how the bottom position felt; adjust stance if needed.',
         },
         {
