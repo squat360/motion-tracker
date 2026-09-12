@@ -6,6 +6,22 @@ Samsung / Android–first coach companion for the [motion-tracker](https://githu
 
 Do **not** treat set counts or cues as gym-validated accuracy scores.
 
+
+## Fold7-safe preview (v1.0.2)
+
+Native `@thinksys/react-native-mediapipe` is **not** shipped in the default EAS `preview` APK (it crashed at splash on Android 16 Fold7). Record uses Expo Camera + fixtures; FitWave / AI Assistant still work offline.
+
+- Set `EXPO_NO_MEDIAPIPE=0` and re-add the ThinkSys package when you want a `pose` APK with live landmarks.
+- AI Assistant tab queues motivational avatars to [squat360/ComfyUI](https://github.com/squat360/ComfyUI) when `EXPO_PUBLIC_COMFYUI_URL` is set (default ComfyUI port `8188`).
+
+## ComfyUI AI Assistant
+
+Custom workouts, food plans, form advice, and avatar prompts live under `src/ai/comfyui/`. Run ComfyUI from the squat360 fork, then:
+
+```bash
+export EXPO_PUBLIC_COMFYUI_URL=http://<gpu-host>:8188
+```
+
 ## FitWave form heuristics
 
 Useful pieces from [squat360/FitWave](https://github.com/squat360/FitWave) (fork of VedankPande/FitWave) are ported in `src/ai/fitwaveFormChecks.ts` — biceps / plank / press angle cues adapted to MediaPipe landmarks. They show up in Review technique findings alongside squat depth heuristics.

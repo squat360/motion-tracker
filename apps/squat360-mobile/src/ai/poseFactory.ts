@@ -33,6 +33,6 @@ export function describePoseBackend(nativeLinked: boolean): {
     id: 'mock-fallback',
     label: 'Mock / fixture fallback',
     detail:
-      'Native MediaPipe module not linked (Expo Go, web, or iOS without a dev build). UI stays usable; landmark pipeline still runs on fixtures.',
+      'Camera + fixture path (Fold7-safe preview omits native MediaPipe). Landmark heuristics and FitWave cues still run offline.',
   };
 }
