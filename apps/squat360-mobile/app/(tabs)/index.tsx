@@ -8,7 +8,7 @@ export default function HomeScreen() {
       <Text style={styles.kicker}>Squat 360</Text>
       <Text style={styles.title}>Coach floor companion</Text>
       <Text style={styles.body}>
-        Samsung / Android–first. On-device MediaPipe Pose feeds set count and technique cues when
+        Samsung / Android–first. Camera + AI Assistant / FitWave cues feed set count and technique cues when
         you install a dev build on Fold7. Expo Go falls back to fixtures/mock. This app
         augments coaches — it does not replace trainers.
       </Text>

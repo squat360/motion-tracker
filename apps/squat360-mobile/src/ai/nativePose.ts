@@ -1,4 +1,5 @@
 import { NativeModules, Platform, UIManager } from 'react-native';
+import Constants from 'expo-constants';
 import type { ComponentType } from 'react';
 
 export type NativePoseViewProps = {
@@ -39,6 +40,7 @@ function viewManagerPresent(): boolean {
 /** True only when the native view manager is actually linked (not Expo Go / web). */
 export function isNativePoseLinked(): boolean {
   if (Platform.OS === 'web') return false;
+  if (Constants.expoConfig?.extra?.disableNativeMediapipe) return false;
   return viewManagerPresent();
 }
 

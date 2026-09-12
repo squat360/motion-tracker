@@ -18,7 +18,8 @@
         "buildType": "apk"
       },
       "env": {
-        "APP_ENV": "preview"
+        "APP_ENV": "preview",
+        "EXPO_NO_MEDIAPIPE": "1"
       },
       "node": "20.19.4"
     },
@@ -27,6 +28,17 @@
         "buildType": "app-bundle"
       },
       "node": "20.19.4"
+    },
+    "pose": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "node": "20.19.4",
+      "env": {
+        "APP_ENV": "pose",
+        "EXPO_NO_MEDIAPIPE": "0"
+      }
     }
   },
   "submit": {
