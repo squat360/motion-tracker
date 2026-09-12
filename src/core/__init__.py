@@ -1,13 +1,10 @@
-"""Core modules for pose estimation and motion analysis."""
+"""Core modules for pose estimation and motion analysis.
 
-from .pose_estimator import PoseEstimator, PoseResult, Keypoint
-from .angle_calculator import AngleCalculator
-from .motion_analyzer import MotionAnalyzer
-from .velocity_analyzer import VelocityAnalyzer
-from .video_processor import VideoProcessor, VideoSource, FrameContext
-from .highlight_detector import HighlightDetector, SignalSource, HighlightCandidate
-from .sport_analyzer import SportAnalyzer, ActionTemplate, CorrectionItem, ActionDetection
-from .analysis_logger import AnalysisLogger, LogLevel, EventType
+Imports are lazy so optional backends (and Android/Linux tooling) can load
+lightweight symbols like PoseEstimator without requiring OpenCV immediately.
+"""
+
+from __future__ import annotations
 
 __all__ = [
     "PoseEstimator",
@@ -30,3 +27,37 @@ __all__ = [
     "LogLevel",
     "EventType",
 ]
+
+_EXPORTS = {
+    "PoseEstimator": (".pose_estimator", "PoseEstimator"),
+    "PoseResult": (".pose_estimator", "PoseResult"),
+    "Keypoint": (".pose_estimator", "Keypoint"),
+    "AngleCalculator": (".angle_calculator", "AngleCalculator"),
+    "MotionAnalyzer": (".motion_analyzer", "MotionAnalyzer"),
+    "VelocityAnalyzer": (".velocity_analyzer", "VelocityAnalyzer"),
+    "VideoProcessor": (".video_processor", "VideoProcessor"),
+    "VideoSource": (".video_processor", "VideoSource"),
+    "FrameContext": (".video_processor", "FrameContext"),
+    "HighlightDetector": (".highlight_detector", "HighlightDetector"),
+    "SignalSource": (".highlight_detector", "SignalSource"),
+    "HighlightCandidate": (".highlight_detector", "HighlightCandidate"),
+    "SportAnalyzer": (".sport_analyzer", "SportAnalyzer"),
+    "ActionTemplate": (".sport_analyzer", "ActionTemplate"),
+    "CorrectionItem": (".sport_analyzer", "CorrectionItem"),
+    "ActionDetection": (".sport_analyzer", "ActionDetection"),
+    "AnalysisLogger": (".analysis_logger", "AnalysisLogger"),
+    "LogLevel": (".analysis_logger", "LogLevel"),
+    "EventType": (".analysis_logger", "EventType"),
+}
+
+
+def __getattr__(name: str):
+    if name not in _EXPORTS:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    mod_name, attr = _EXPORTS[name]
+    from importlib import import_module
+
+    mod = import_module(mod_name, __name__)
+    value = getattr(mod, attr)
+    globals()[name] = value
+    return value

@@ -20,9 +20,9 @@ from ..core.pose_estimator import PoseEstimator, PoseResult, Keypoint
 class MediaPipeBackend(PoseEstimator):
     """MediaPipe pose estimation backend with 33 keypoints.
 
+    Default backend for Squat 360 (Android / Samsung / Linux / macOS).
     Supports both 2D and 3D pose estimation with world landmarks.
-    Native support for Apple Silicon and Intel processors (MediaPipe 0.10+).
-    Uses the new Tasks API for MediaPipe 0.10+.
+    Uses the MediaPipe Tasks API (0.10+). Cross-platform; no Apple Vision/CoreML required.
     """
 
     # MediaPipe Pose landmark names (33 keypoints)

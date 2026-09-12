@@ -41,3 +41,13 @@ logs/
 .env
 .env.local
 models/
+# Mobile / Expo
+apps/**/node_modules/
+apps/**/.expo/
+apps/**/dist/
+apps/**/.env
+apps/**/.env.local
+*.jks
+*.p8
+*.p12
+*.mobileprovision
