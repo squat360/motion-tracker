@@ -7,6 +7,7 @@ import {
 } from './landmarks';
 import type { TechniqueAnalyzer } from './TechniqueAnalyzer';
 import type { PoseFrame, TechniqueAnalysis, TechniqueFinding } from './types';
+import { summarizeFitWaveSession } from './fitwaveFormChecks';
 
 const DEPTH_SHALLOW_DEG = 115;
 const TORSO_LEAN_FLAG_DEG = 38;
@@ -124,10 +125,15 @@ export class LandmarkTechniqueAnalyzer implements TechniqueAnalyzer {
       });
     }
 
+    // FitWave-inspired multi-exercise cues (ported from squat360/FitWave)
+    findings.push(...summarizeFitWaveSession('plank', usable));
+    findings.push(...summarizeFitWaveSession('biceps', usable));
+    findings.push(...summarizeFitWaveSession('press', usable));
+
     const summary =
       `Reviewed ${usable.length} landmark frame(s)` +
       (minKnee != null ? `; deepest knee ≈ ${minKnee.toFixed(0)}°` : '') +
-      '. Heuristics only — augments coach review.';
+      '. Heuristics only — augments coach review (includes FitWave form cues).';
 
     return { findings, summary };
   }

@@ -2,7 +2,6 @@ import { DarkTheme, ThemeProvider, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
 
 import { getDb } from '@/src/db/database';
 import { gym } from '@/src/theme/gym';
