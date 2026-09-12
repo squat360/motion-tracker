@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Squat 360",
-    "slug": "squat360-mobile",
+    "slug": "squat-360",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
@@ -72,7 +72,10 @@
       "typedRoutes": true
     },
     "extra": {
-      "eas": {}
-    }
+      "eas": {
+        "projectId": "e97ad6f8-faa3-4db5-b613-6697ae9e8460"
+      }
+    },
+    "owner": "squat360"
   }
 }
