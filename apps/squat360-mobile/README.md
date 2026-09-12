@@ -131,3 +131,30 @@ npm run typecheck
 - TypeScript `strict` via `tsconfig.json`. No Apple Vision / CoreML / ARKit imports.
 - Firebase: copy `.env.example` → `.env` when needed; stubs never replace local sqlite.
 - Optional hardware: `src/hardware/` (IMX500 future).
+
+## Install on Fold7 without a local Android SDK (EAS)
+
+Use **Expo Application Services** to build an APK in the cloud, then download it on the phone.
+
+### One-time (on any computer with Node, or ask the Squat 360 bot)
+
+```bash
+cd apps/squat360-mobile
+npm install
+npx eas-cli login          # Expo account
+npx eas-cli init           # links this app (creates projectId in app.json)
+npx eas build --platform android --profile preview
+```
+
+When the build finishes, EAS shows a **QR code / download URL**.
+
+### On the Fold7
+
+1. Open the EAS download link in **Chrome** (not in-app browsers that block APKs).
+2. If Android blocks install: **Settings → Security** (or **Apps → Special access**) → allow **Install unknown apps** for Chrome.
+3. Install the APK → open **Squat 360** → grant Camera.
+4. Settings should show the MediaPipe native module **linked**.
+
+Use profile **`preview`** for a standalone APK (best for quick Fold7 tests).  
+Use **`development`** if you still want a dev client that talks to Metro.
+
