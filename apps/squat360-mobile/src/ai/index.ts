@@ -9,3 +9,4 @@ export * from './poseFactory';
 export * from './poseSession';
 export * from './constants';
 export { buildSquatFixture, buildShallowSquatFixture, SAMPLE_SQUAT_FRAMES } from './fixtures/squatSequence';
+export * from './fitwaveFormChecks';

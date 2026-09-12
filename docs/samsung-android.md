@@ -154,3 +154,7 @@ If you only have the Fold7 (no laptop with Android Studio):
 
 Config lives in `apps/squat360-mobile/eas.json` (`preview` = internal APK).
 
+
+## FitWave reference
+
+Form-cue heuristics adapted from [squat360/FitWave](https://github.com/squat360/FitWave) (MoveNet/MediaPipe pose rules) live in `apps/squat360-mobile/src/ai/fitwaveFormChecks.ts`.

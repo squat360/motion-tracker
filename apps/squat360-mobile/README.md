@@ -6,6 +6,15 @@ Samsung / Android–first coach companion for the [motion-tracker](https://githu
 
 Do **not** treat set counts or cues as gym-validated accuracy scores.
 
+## FitWave form heuristics
+
+Useful pieces from [squat360/FitWave](https://github.com/squat360/FitWave) (fork of VedankPande/FitWave) are ported in `src/ai/fitwaveFormChecks.ts` — biceps / plank / press angle cues adapted to MediaPipe landmarks. They show up in Review technique findings alongside squat depth heuristics.
+
+## Fold7 crash note (v1.0.1)
+
+Preview APK `1.0.0` flashed splash then exited on Android 16. Fix: removed unused `react-native-reanimated` side-effect import and added `babel.config.js` (`babel-preset-expo`). Reinstall the new APK (versionCode 2).
+
+
 ## Why a dev client (not Expo Go)
 
 | Path | What you get |
