@@ -49,5 +49,8 @@
     "eas:build:android": "eas build --platform android --profile preview",
     "eas:build:dev": "eas build --platform android --profile development"
   },
-  "private": true
+  "private": true,
+  "engines": {
+    "node": ">=20.19.4"
+  }
 }
