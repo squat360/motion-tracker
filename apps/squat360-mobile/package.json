@@ -34,7 +34,8 @@
   "devDependencies": {
     "@types/react": "~19.2.2",
     "typescript": "~6.0.3",
-    "tsx": "^4.20.5"
+    "tsx": "^4.20.5",
+    "eas-cli": "^16.28.0"
   },
   "scripts": {
     "start": "expo start",
@@ -44,7 +45,9 @@
     "typecheck": "tsc --noEmit",
     "start:dev": "expo start --dev-client",
     "prebuild:android": "expo prebuild --platform android",
-    "test": "node --import tsx --test src/ai/__tests__/landmarkPipeline.test.ts"
+    "test": "node --import tsx --test src/ai/__tests__/landmarkPipeline.test.ts",
+    "eas:build:android": "eas build --platform android --profile preview",
+    "eas:build:dev": "eas build --platform android --profile development"
   },
   "private": true
 }

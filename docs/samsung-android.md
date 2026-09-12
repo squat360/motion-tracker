@@ -135,3 +135,22 @@ Python package alignment: `src/backends` defaults to `MediaPipeBackend`. Apple V
 
 - Mobile app: [`apps/squat360-mobile/`](../apps/squat360-mobile/)
 - Backends: [`src/backends/`](../src/backends/)
+
+## EAS cloud APK (no local Android SDK)
+
+If you only have the Fold7 (no laptop with Android Studio):
+
+1. From any machine with Node (or your assistant’s computer):
+   ```bash
+   cd apps/squat360-mobile
+   npm install
+   npx eas-cli login
+   npx eas-cli init
+   npx eas build --platform android --profile preview
+   ```
+2. Open the build’s download URL on the Fold7 in Chrome.
+3. Allow install from that source → install APK → grant Camera.
+4. Confirm Settings shows native MediaPipe **linked**.
+
+Config lives in `apps/squat360-mobile/eas.json` (`preview` = internal APK).
+
