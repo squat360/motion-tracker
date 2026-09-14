@@ -136,23 +136,29 @@ Python package alignment: `src/backends` defaults to `MediaPipeBackend`. Apple V
 - Mobile app: [`apps/squat360-mobile/`](../apps/squat360-mobile/)
 - Backends: [`src/backends/`](../src/backends/)
 
-## EAS cloud APK (no local Android SDK)
+## Cloud APK (no local Android SDK)
 
-If you only have the Fold7 (no laptop with Android Studio):
+If you only have the Fold7 (no laptop with Android Studio), build the Fold7-safe preview APK (`EXPO_NO_MEDIAPIPE=1`) in the cloud.
 
-1. From any machine with Node (or your assistant’s computer):
-   ```bash
-   cd apps/squat360-mobile
-   npm install
-   npx eas-cli login
-   npx eas-cli init
-   npx eas build --platform android --profile preview
-   ```
-2. Open the build’s download URL on the Fold7 in Chrome.
-3. Allow install from that source → install APK → grant Camera.
-4. Confirm Settings shows native MediaPipe **linked**.
+### Codemagic
 
-Config lives in `apps/squat360-mobile/eas.json` (`preview` = internal APK).
+1. Add `squat360/motion-tracker` at [codemagic.io/apps](https://codemagic.io/apps).
+2. Start **Fold7 preview APK**. Config: [`codemagic.yaml`](../codemagic.yaml) at the repo root.
+3. Download the `.apk` artifact on the Fold7 in Chrome → allow install → grant Camera.
+
+Pushes to `main` trigger that workflow. PRs run Super Coach unit tests only.
+
+### EAS (alternative)
+
+```bash
+cd apps/squat360-mobile
+npm install
+npx eas-cli login
+npx eas-cli init
+npx eas build --platform android --profile preview
+```
+
+Config lives in `apps/squat360-mobile/eas.json` (`preview` = internal APK). Native MediaPipe is **not** linked on this preview APK — that is the Fold7-safe path.
 
 
 ## FitWave reference

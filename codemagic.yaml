@@ -1,0 +1,74 @@
+# Codemagic CI for Squat 360 mobile (Expo 57).
+# File must live at the repo root. Add squat360/motion-tracker in
+# https://codemagic.io/apps then Start build → these workflows appear.
+#
+# Fold7-safe preview matches EAS profile `preview` (EXPO_NO_MEDIAPIPE=1).
+# Native ThinkSys MediaPipe crashed at splash on Android 16 Fold7.
+
+workflows:
+  squat360-tests:
+    name: Super Coach unit tests
+    instance_type: mac_mini_m2
+    max_build_duration: 20
+    working_directory: apps/squat360-mobile
+    environment:
+      node: 20.19.4
+    scripts:
+      - name: Install npm dependencies
+        script: npm ci
+      - name: Super Coach + landmark tests
+        script: npm test
+      - name: Typecheck
+        script: npm run typecheck
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+        - pattern: 'feat/*'
+          include: true
+          source: true
+      cancel_previous_builds: true
+
+  squat360-android-preview:
+    name: Fold7 preview APK
+    instance_type: mac_mini_m2
+    max_build_duration: 90
+    working_directory: apps/squat360-mobile
+    environment:
+      node: 20.19.4
+      java: 17
+      vars:
+        EXPO_NO_MEDIAPIPE: "1"
+    cache:
+      cache_paths:
+        - $CM_BUILD_DIR/apps/squat360-mobile/node_modules
+        - $HOME/.gradle/caches
+    scripts:
+      - name: Install npm dependencies
+        script: npm ci
+      - name: Super Coach tests
+        script: npm test
+      - name: Expo prebuild Android
+        script: npx expo prebuild --platform android --non-interactive --no-install
+      - name: Point Gradle at the Android SDK
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+      - name: Assemble debug APK
+        script: |
+          cd android
+          ./gradlew assembleDebug --no-daemon
+    artifacts:
+      - android/app/build/outputs/apk/**/*.apk
+      - apps/squat360-mobile/android/app/build/outputs/apk/**/*.apk
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+      cancel_previous_builds: true
