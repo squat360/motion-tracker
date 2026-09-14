@@ -171,11 +171,21 @@ npm run typecheck
 - Firebase: copy `.env.example` → `.env` when needed; stubs never replace local sqlite.
 - Optional hardware: `src/hardware/` (IMX500 future).
 
-## Install on Fold7 without a local Android SDK (EAS)
+## Install on Fold7 without a local Android SDK
 
-Use **Expo Application Services** to build an APK in the cloud, then download it on the phone.
+Two cloud APK paths. Both use the Fold7-safe preview (`EXPO_NO_MEDIAPIPE=1` — ThinkSys MediaPipe is **not** in this APK; Record uses Expo Camera + fixtures).
 
-### One-time (on any computer with Node, or ask the Squat 360 bot)
+### Codemagic (preferred)
+
+`codemagic.yaml` at the repo root.
+
+1. Open [codemagic.io/apps](https://codemagic.io/apps) → **Add application** → GitHub → `squat360/motion-tracker`.
+2. **Start new build** → workflow **Fold7 preview APK** (`squat360-android-preview`). First run can also be a manual trigger from [builds](https://codemagic.io/builds).
+3. When it finishes, download the `.apk` artifact.
+
+Pushes to `main` start that APK automatically. PRs run **Super Coach unit tests** only.
+
+### EAS (alternative)
 
 ```bash
 cd apps/squat360-mobile
@@ -185,15 +195,13 @@ npx eas-cli init           # links this app (creates projectId in app.json)
 npx eas build --platform android --profile preview
 ```
 
-When the build finishes, EAS shows a **QR code / download URL**.
+When the build finishes, EAS shows a **QR code / download URL**. Use profile **`development`** if you still want a dev client that talks to Metro.
 
 ### On the Fold7
 
-1. Open the EAS download link in **Chrome** (not in-app browsers that block APKs).
+1. Open the APK download link in **Chrome** (not in-app browsers that block APKs).
 2. If Android blocks install: **Settings → Security** (or **Apps → Special access**) → allow **Install unknown apps** for Chrome.
 3. Install the APK → open **Squat 360** → grant Camera.
-4. Settings should show the MediaPipe native module **linked**.
+4. Settings: Super Coach is on-device. Native MediaPipe stays unlinked on this preview APK (that is intentional).
 
-Use profile **`preview`** for a standalone APK (best for quick Fold7 tests).  
-Use **`development`** if you still want a dev client that talks to Metro.
 
