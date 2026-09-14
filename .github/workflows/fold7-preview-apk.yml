@@ -1,0 +1,60 @@
+# Fold7-safe preview APK (EXPO_NO_MEDIAPIPE=1). Same path as Codemagic
+# squat360-android-preview. Manual run + pushes that touch the mobile app.
+name: Fold7 preview APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/squat360-mobile/**'
+      - '.github/workflows/fold7-preview-apk.yml'
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: apps/squat360-mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.4'
+          cache: npm
+          cache-dependency-path: apps/squat360-mobile/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Super Coach tests
+        run: npm test
+
+      - name: Expo prebuild Android
+        env:
+          CI: '1'
+          EXPO_NO_MEDIAPIPE: '1'
+        run: npx expo prebuild --platform android --non-interactive --no-install
+
+      - name: Assemble debug APK (arm64)
+        env:
+          EXPO_NO_MEDIAPIPE: '1'
+        run: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+          cd android
+          ./gradlew assembleDebug --no-daemon --console=plain -PreactNativeArchitectures=arm64-v8a
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: squat360-fold7-preview
+          path: apps/squat360-mobile/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
