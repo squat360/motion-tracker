@@ -4,6 +4,7 @@ import { gym } from '@/src/theme/gym';
 import { SAMPLE_SQUAT_FRAMES } from '@/src/ai/fixtures/squatSequence';
 import { LandmarkTechniqueAnalyzer } from '@/src/ai/LandmarkTechniqueAnalyzer';
 import { getLastPoseSession } from '@/src/ai/poseSession';
+import { listCoachHistory } from '@/src/db/database';
 import {
   runAssistant,
   type AssistantBundle,
@@ -15,6 +16,7 @@ const GOALS: TrainingGoal[] = ['strength', 'hypertrophy', 'conditioning'];
 export default function AssistantScreen() {
   const [name, setName] = useState('Athlete');
   const [goal, setGoal] = useState<TrainingGoal>('strength');
+  const [question, setQuestion] = useState('');
   const [bundle, setBundle] = useState<AssistantBundle | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -24,26 +26,29 @@ export default function AssistantScreen() {
       const captured = getLastPoseSession();
       const frames = captured?.frames?.length ? captured.frames : SAMPLE_SQUAT_FRAMES;
       const analysis = captured?.analysis ?? new LandmarkTechniqueAnalyzer().analyze(frames);
+      const history = await listCoachHistory();
       const next = await runAssistant({
         athleteName: name.trim() || 'Athlete',
         goal,
         findings: analysis.findings,
         frames,
         queueAvatar: true,
+        history,
+        question,
       });
       setBundle(next);
     } finally {
       setBusy(false);
     }
-  }, [name, goal]);
+  }, [name, goal, question]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 32, gap: 12 }}>
-      <Text style={styles.title}>AI Assistant</Text>
+      <Text style={styles.title}>Super Coach</Text>
       <Text style={styles.muted}>
-        Custom workouts, food plans, form advice, and motivational avatars. Text plans run on-device;
-        avatars queue to ComfyUI when EXPO_PUBLIC_COMFYUI_URL points at your{' '}
-        squat360/ComfyUI server.
+        On-device phase, load, and calories from filmed history. Optional cloud LLM may rewrite the
+        briefing only — it never changes the rule-engine call. Avatars queue to ComfyUI when
+        EXPO_PUBLIC_COMFYUI_URL points at squat360/ComfyUI.
       </Text>
 
       <Text style={styles.label}>Athlete name</Text>
@@ -68,12 +73,40 @@ export default function AssistantScreen() {
         ))}
       </View>
 
+      <Text style={styles.label}>Ask Super Coach</Text>
+      <TextInput
+        value={question}
+        onChangeText={setQuestion}
+        placeholder="should I add weight / I am tired / is my depth the problem"
+        placeholderTextColor={gym.muted}
+        style={[styles.input, { minHeight: 64, textAlignVertical: 'top' }]}
+        multiline
+      />
+
       <Pressable style={styles.btn} onPress={generate} disabled={busy}>
-        <Text style={styles.btnText}>{busy ? 'Building…' : 'Generate plan + avatar cue'}</Text>
+        <Text style={styles.btnText}>{busy ? 'Building…' : 'Generate plan + briefing'}</Text>
       </Pressable>
 
       {bundle ? (
         <View style={{ gap: 12 }}>
+          <View style={styles.card}>
+            <Text style={styles.focus}>{bundle.decision.phase.toUpperCase()}</Text>
+            <Text style={styles.cardTitle}>{bundle.briefing}</Text>
+            <Text style={styles.muted}>
+              Recovery {bundle.decision.recovery} · form {bundle.decision.trend} · load{' '}
+              {bundle.decision.loadBiasKg >= 0 ? '+' : ''}
+              {bundle.decision.loadBiasKg} kg · {bundle.calories} kcal
+            </Text>
+            <Text style={styles.muted}>{bundle.coachDetail}</Text>
+          </View>
+
+          {bundle.answer ? (
+            <View style={styles.card}>
+              <Text style={styles.focus}>ANSWER</Text>
+              <Text style={styles.cardTitle}>{bundle.answer}</Text>
+            </View>
+          ) : null}
+
           <Text style={styles.section}>ComfyUI</Text>
           <Text style={styles.muted}>
             {bundle.comfyQueued ? 'Avatar workflow queued. ' : ''}

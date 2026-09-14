@@ -52,7 +52,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="assistant"
         options={{
-          title: 'AI',
+          title: 'Coach',
           tabBarIcon: ({ color }) => <TabIcon name="magic" color={String(color)} />,
         }}
       />

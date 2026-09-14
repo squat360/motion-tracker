@@ -1,11 +1,24 @@
 /**
- * Squat 360 AI Assistant — custom workouts, food plans, form advice, motivational avatars.
- * Text plans run on-device (rules + FitWave cues). Avatar art uses ComfyUI when online.
+ * Squat 360 Super Coach — custom workouts, food, form advice, motivational avatars.
+ * Text plans + phase/load/calories run on-device. Avatars queue to ComfyUI when online.
+ * Optional OpenAI-compatible LLM may rewrite briefing/answer text only.
  */
 import type { TechniqueFinding } from '../types';
 import { summarizeFitWaveSession, type FitWaveExercise } from '../fitwaveFormChecks';
 import type { PoseFrame } from '../types';
 import { buildMotivationalAvatarWorkflow, pingComfyUi, queueComfyPrompt } from './client';
+import {
+  decideCoach,
+  foodWithCoach,
+  parseFindings,
+  workoutWithCoach,
+  type CoachDecision,
+  type CoachSession,
+  type TrainingGoal,
+} from '../superCoach';
+import { polishWithCloudLlm } from '../superCoachCloud';
+
+export type { TrainingGoal };
 
 export type WorkoutBlock = {
   id: string;
@@ -28,14 +41,25 @@ export type AssistantBundle = {
   avatarPrompt: string;
   comfyQueued: boolean;
   comfyDetail: string;
+  decision: CoachDecision;
+  briefing: string;
+  answer: string;
+  coachSource: 'local' | 'cloud';
+  coachDetail: string;
+  calories: number;
 };
 
-const GOALS = ['strength', 'hypertrophy', 'conditioning'] as const;
-export type TrainingGoal = (typeof GOALS)[number];
-
 export function buildCustomWorkout(goal: TrainingGoal, findings: TechniqueFinding[]): WorkoutBlock[] {
-  const depthCue = findings.some((f) => f.code === 'DEPTH_CHECK' && f.severity === 'cue');
-  const kneeCue = findings.some((f) => f.code === 'KNEE_TRACK' && f.severity === 'cue');
+  const depthCue = findings.some(
+    (f) =>
+      (f.code === 'DEPTH_CHECK' || f.code === 'DEPTH_INSUFFICIENT') &&
+      (f.severity === 'cue' || f.severity === 'flag' || f.severity === 'warning'),
+  );
+  const kneeCue = findings.some(
+    (f) =>
+      (f.code === 'KNEE_TRACK' || f.code === 'KNEE_VALGUS') &&
+      (f.severity === 'cue' || f.severity === 'flag' || f.severity === 'warning'),
+  );
   const base: WorkoutBlock[] = [
     {
       id: 'w1',
@@ -75,14 +99,25 @@ export function buildCustomWorkout(goal: TrainingGoal, findings: TechniqueFindin
   return base;
 }
 
-export function buildCustomFoodPlan(goal: TrainingGoal): FoodPlanItem[] {
-  const protein = goal === 'hypertrophy' ? '2.0 g/kg' : '1.6–1.8 g/kg';
+export function calorieTarget(goal: TrainingGoal, weightKg: number): number {
+  const multiplier = goal === 'hypertrophy' ? 36 : goal === 'strength' ? 33 : 30;
+  return Math.round(weightKg * multiplier);
+}
+
+export function proteinTarget(goal: TrainingGoal, weightKg: number): number {
+  const perKg = goal === 'hypertrophy' ? 2.0 : goal === 'strength' ? 1.8 : 1.6;
+  return Math.round(weightKg * perKg);
+}
+
+export function buildCustomFoodPlan(goal: TrainingGoal, weightKg = 75): FoodPlanItem[] {
+  const protein = proteinTarget(goal, weightKg);
+  const calories = calorieTarget(goal, weightKg);
   return [
     {
       id: 'f1',
       meal: 'Breakfast',
       title: 'High-protein start',
-      detail: `Eggs or Greek yogurt + fruit. Target ~${protein} protein across the day.`,
+      detail: `Eggs or Greek yogurt + fruit. Target ${calories} kcal and ~${protein}g protein across the day.`,
     },
     {
       id: 'f2',
@@ -107,9 +142,9 @@ export function buildCustomFoodPlan(goal: TrainingGoal): FoodPlanItem[] {
 
 export function buildFormAdvice(
   frames: PoseFrame[],
-  exercise: FitWaveExercise = 'squat'
+  exercise: FitWaveExercise = 'squat',
 ): TechniqueFinding[] {
-  const fitwave = summarizeFitWaveSession(exercise === 'squat' ? 'plank' : exercise, frames);
+  const fitwave = summarizeFitWaveSession(exercise, frames);
   return [
     {
       code: 'AI_FORM_INTRO',
@@ -131,10 +166,37 @@ export async function runAssistant(options: {
   findings: TechniqueFinding[];
   frames: PoseFrame[];
   queueAvatar: boolean;
+  history?: CoachSession[];
+  question?: string;
+  daysPerWeek?: number;
+  weightKg?: number;
 }): Promise<AssistantBundle> {
+  const daysPerWeek = options.daysPerWeek ?? 3;
+  const weightKg = options.weightKg ?? 75;
+  const history = options.history ?? [];
+  const findings = parseFindings(options.findings);
+  const decision = decideCoach(options.goal, daysPerWeek, findings, history, options.question ?? '');
+  const polished = await polishWithCloudLlm({
+    goal: options.goal,
+    decision,
+    question: options.question ?? '',
+    history,
+  });
+
   const workouts = buildCustomWorkout(options.goal, options.findings);
-  const food = buildCustomFoodPlan(options.goal);
-  const formAdvice = buildFormAdvice(options.frames);
+  if (workouts[0]) {
+    workouts[0] = {
+      ...workouts[0],
+      title: `${workouts[0].title} · ${decision.phase}`,
+      detail: workoutWithCoach(workouts[0].detail, decision),
+    };
+  }
+
+  const oldCalories = calorieTarget(options.goal, weightKg);
+  const food = buildCustomFoodPlan(options.goal, weightKg).map((f, i) =>
+    i === 0 ? { ...f, detail: foodWithCoach(f.detail, oldCalories, decision) } : f,
+  );
+  const formAdvice = buildFormAdvice(options.frames, 'squat');
   const avatarPrompt = motivationalAvatarPrompt(options.athleteName, options.goal);
   const status = await pingComfyUi();
   let comfyQueued = false;
@@ -153,5 +215,11 @@ export async function runAssistant(options: {
     avatarPrompt,
     comfyQueued,
     comfyDetail: status.detail,
+    decision,
+    briefing: polished.briefing,
+    answer: polished.answer,
+    coachSource: polished.source,
+    coachDetail: polished.detail,
+    calories: Math.max(1400, oldCalories + decision.calorieBias),
   };
 }

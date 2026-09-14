@@ -11,3 +11,5 @@ export * from './constants';
 export { buildSquatFixture, buildShallowSquatFixture, SAMPLE_SQUAT_FRAMES } from './fixtures/squatSequence';
 export * from './fitwaveFormChecks';
 export * from './comfyui';
+export * from './superCoach';
+export * from './superCoachCloud';

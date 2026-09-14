@@ -22,6 +22,20 @@ Custom workouts, food plans, form advice, and avatar prompts live under `src/ai/
 export EXPO_PUBLIC_COMFYUI_URL=http://<gpu-host>:8188
 ```
 
+
+## Super Coach (v1.3.0)
+
+The AI tab is now Super Coach — same rule engine as `squat360/ComfyUI` `Squat360SuperCoach`.
+
+- Phase (`accumulate` / `intensify` / `rebuild` / `deload`), load bias, and calorie bias run **on-device** from sqlite set history + live camera cues.
+- Optional `EXPO_PUBLIC_LLM_URL` (OpenAI-compatible `/v1/chat/completions`) may rewrite briefing/answer copy. **Empty URL = local only.** Cloud copy never changes phase, load, or calories.
+- Ask about depth, knees, food, fatigue, or load.
+
+```bash
+cd apps/squat360-mobile
+npm test   # landmark pipeline + Super Coach (matches ComfyUI node tests)
+```
+
 ## FitWave form heuristics
 
 Useful pieces from [squat360/FitWave](https://github.com/squat360/FitWave) (fork of VedankPande/FitWave) are ported in `src/ai/fitwaveFormChecks.ts` — biceps / plank / press angle cues adapted to MediaPipe landmarks. They show up in Review technique findings alongside squat depth heuristics.
