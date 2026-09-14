@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS sets (
   reps INTEGER DEFAULT 0,
   load_kg REAL,
   notes TEXT DEFAULT '',
+  form_score INTEGER,
   FOREIGN KEY (session_id) REFERENCES sessions(id)
 );
 

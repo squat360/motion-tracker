@@ -2,7 +2,7 @@
   "expo": {
     "name": "Squat 360",
     "slug": "squat-360",
-    "version": "1.0.2",
+    "version": "1.3.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "squat360mobile",
@@ -28,7 +28,7 @@
         "android.permission.RECORD_AUDIO"
       ],
       "package": "com.squat360.mobile",
-      "versionCode": 3
+      "versionCode": 4
     },
     "web": {
       "bundler": "metro",
@@ -74,7 +74,9 @@
       "eas": {
         "projectId": "e97ad6f8-faa3-4db5-b613-6697ae9e8460"
       },
-      "comfyuiBaseUrl": ""
+      "comfyuiBaseUrl": "",
+      "llmBaseUrl": "",
+      "llmModel": "gpt-4o-mini"
     },
     "owner": "squat360"
   }

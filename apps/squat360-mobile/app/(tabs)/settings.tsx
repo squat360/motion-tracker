@@ -4,6 +4,8 @@ import { isFirebaseConfigured } from '@/src/firebase/config';
 import { DEFAULT_BACKEND_LABEL, NATIVE_POSE_PACKAGE } from '@/src/ai/constants';
 import { isNativePoseLinked } from '@/src/ai/nativePose';
 import { describePoseBackend } from '@/src/ai/poseFactory';
+import { getComfyBaseUrl } from '@/src/ai/comfyui/client';
+import { getLlmBaseUrl, getLlmModel } from '@/src/ai/superCoachCloud';
 
 export default function SettingsScreen() {
   const native = isNativePoseLinked();
@@ -40,6 +42,13 @@ export default function SettingsScreen() {
       <View style={styles.card}>
         <Text style={styles.rowLabel}>Hardware</Text>
         <Text style={styles.rowValue}>IMX500 optional — src/hardware/README.md</Text>
+      </View>
+      <View style={styles.card}>
+        <Text style={styles.rowLabel}>Super Coach</Text>
+        <Text style={styles.rowValue}>On-device phase / load / calories</Text>
+        <Text style={styles.muted}>
+          ComfyUI {getComfyBaseUrl() || 'not set'} · LLM {getLlmBaseUrl() ? `${getLlmModel()} @ ${getLlmBaseUrl()}` : 'local only (empty URL)'}
+        </Text>
       </View>
       <Text style={styles.muted}>
         Squat 360 augments coaches. Pose numbers are heuristics — not gym-validated accuracy scores.
