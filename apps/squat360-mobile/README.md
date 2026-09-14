@@ -36,6 +36,17 @@ cd apps/squat360-mobile
 npm test   # landmark pipeline + Super Coach (matches ComfyUI node tests)
 ```
 
+## Web3 locker (v1.4.0)
+
+The useful part of [awesome-web3.0](https://github.com/surajondev/awesome-web3.0) for a coach app is **ethers.js** + a wallet — not DeFi or a marketplace.
+
+- Super Coach still runs fully off-chain.
+- **Lock briefing** signs the phase / load / calorie decision with EIP-191 (recoverable to the on-device locker).
+- Content id is `keccak256` of the canonical JSON (IPFS-style, no upload).
+- Form badge is OpenZeppelin-style ERC-721 metadata, mint-ready, **not listed**.
+
+No RPC, no gas. Rotate the locker in Settings. Not a hardware wallet.
+
 ## FitWave form heuristics
 
 Useful pieces from [squat360/FitWave](https://github.com/squat360/FitWave) (fork of VedankPande/FitWave) are ported in `src/ai/fitwaveFormChecks.ts` — biceps / plank / press angle cues adapted to MediaPipe landmarks. They show up in Review technique findings alongside squat depth heuristics.

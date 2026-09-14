@@ -10,6 +10,18 @@ import {
   type AssistantBundle,
   type TrainingGoal,
 } from '@/src/ai/comfyui';
+import {
+  buildAttestation,
+  formBadge,
+  loadOrCreateWallet,
+  shortAddress,
+  shortHex,
+  signAttestation,
+  verifyAttestation,
+  walletFromStored,
+  type FormBadge,
+  type SignedAttestation,
+} from '@/src/web3';
 
 const GOALS: TrainingGoal[] = ['strength', 'hypertrophy', 'conditioning'];
 
@@ -19,9 +31,15 @@ export default function AssistantScreen() {
   const [question, setQuestion] = useState('');
   const [bundle, setBundle] = useState<AssistantBundle | null>(null);
   const [busy, setBusy] = useState(false);
+  const [lock, setLock] = useState<SignedAttestation | null>(null);
+  const [badge, setBadge] = useState<FormBadge | null>(null);
+  const [lockError, setLockError] = useState('');
 
   const generate = useCallback(async () => {
     setBusy(true);
+    setLock(null);
+    setBadge(null);
+    setLockError('');
     try {
       const captured = getLastPoseSession();
       const frames = captured?.frames?.length ? captured.frames : SAMPLE_SQUAT_FRAMES;
@@ -42,13 +60,36 @@ export default function AssistantScreen() {
     }
   }, [name, goal, question]);
 
+  const lockBriefing = useCallback(async () => {
+    if (!bundle) return;
+    setLockError('');
+    try {
+      const stored = await loadOrCreateWallet();
+      const att = buildAttestation({
+        athlete: name.trim() || 'Athlete',
+        goal,
+        decision: bundle.decision,
+      });
+      const signed = signAttestation(walletFromStored(stored), att);
+      if (!verifyAttestation(signed)) {
+        setLockError('Signature did not verify. Locker not used.');
+        return;
+      }
+      setLock(signed);
+      setBadge(formBadge(att));
+    } catch (err) {
+      setLockError(String(err));
+    }
+  }, [bundle, name, goal]);
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 32, gap: 12 }}>
       <Text style={styles.title}>Super Coach</Text>
       <Text style={styles.muted}>
         On-device phase, load, and calories from filmed history. Optional cloud LLM may rewrite the
         briefing only — it never changes the rule-engine call. Avatars queue to ComfyUI when
-        EXPO_PUBLIC_COMFYUI_URL points at squat360/ComfyUI.
+        EXPO_PUBLIC_COMFYUI_URL points at squat360/ComfyUI. Optional Web3 locker signs the briefing
+        with ethers.js — no chain, no gas.
       </Text>
 
       <Text style={styles.label}>Athlete name</Text>
@@ -107,6 +148,23 @@ export default function AssistantScreen() {
             </View>
           ) : null}
 
+          <Pressable style={styles.btn} onPress={lockBriefing}>
+            <Text style={styles.btnText}>{lock ? 'Re-lock briefing' : 'Lock briefing (Web3)'}</Text>
+          </Pressable>
+          {lockError ? <Text style={styles.warn}>{lockError}</Text> : null}
+          {lock && badge ? (
+            <View style={styles.card}>
+              <Text style={styles.focus}>LOCKED · {badge.name}</Text>
+              <Text style={styles.cardTitle}>{badge.description}</Text>
+              <Text style={styles.muted}>Signer {shortAddress(lock.signer)}</Text>
+              <Text style={styles.muted}>Content id {shortHex(lock.contentId)}</Text>
+              <Text style={styles.muted}>
+                EIP-191 signature verified on device. Not minted, not listed — OpenZeppelin-style
+                metadata ready if a coach later deploys.
+              </Text>
+            </View>
+          ) : null}
+
           <Text style={styles.section}>ComfyUI</Text>
           <Text style={styles.muted}>
             {bundle.comfyQueued ? 'Avatar workflow queued. ' : ''}
@@ -150,6 +208,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: gym.bg, padding: 16 },
   title: { color: gym.text, fontSize: 24, fontWeight: '700' },
   muted: { color: gym.muted, fontSize: 13, lineHeight: 18 },
+  warn: { color: gym.warn, fontSize: 13, lineHeight: 18 },
   label: { color: gym.text, fontWeight: '600', marginTop: 4 },
   input: {
     borderWidth: 1,
